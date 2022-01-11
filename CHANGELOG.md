@@ -1,15 +1,9 @@
 # Changelog
 
-## v1.0.0
+## v0.0.1
 
 ### Added or Changed
-- Added this changelog :)
-- Fixed typos in both templates
-- Back to top links
-- Added more "Built With" frameworks/libraries
-- Changed table of contents to start collapsed
-- Added checkboxes for major features on roadmap
-
-### Removed
-
-- Some packages/libraries from acknowledgements I no longer use
+ - Added the intial folder structure and included the git ignore to make the work easier.
+ - Added the package.json file with the dependencies
+ - Added the basic code for the MVC design pattern as well as the code to get express up and running
+ - Added .env file for configuration

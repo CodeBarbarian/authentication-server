@@ -1,0 +1,33 @@
+{
+  "name": "authentication-server",
+  "version": "1.0.0",
+  "description": "A simple JWT authentication server supporting claims and a MariaDB database for persistent storage.",
+  "main": "index.js",
+  "scripts": {
+    "test": "\"echo \\\"Error: no test specified\\\" && exit 1\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CodeBarbarian/authentication-server.git"
+  },
+  "keywords": [
+    "authentication",
+    "jwt",
+    "nodejs",
+    "restapi"
+  ],
+  "author": "CodeBarbarian",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/CodeBarbarian/authentication-server/issues"
+  },
+  "homepage": "https://github.com/CodeBarbarian/authentication-server#readme",
+  "dependencies": {
+    "bcrypt": "^5.0.1",
+    "dotenv": "^11.0.0",
+    "express": "^4.17.2",
+    "jsonwebtoken": "^8.5.1",
+    "mariadb": "^2.5.5",
+    "sequelize": "^6.13.0"
+  }
+}
