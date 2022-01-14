@@ -37,8 +37,6 @@
     <a href="https://github.com/codebarbarian/authentication-server"><strong>Explore the docs »</strong></a>
     <br />
     <br />
-    <a href="https://github.com/codebarbarian/authentication-server">View Demo</a>
-    ·
     <a href="https://github.com/codebarbarian/authentication-server/issues">Report Bug</a>
     ·
     <a href="https://github.com/codebarbarian/authentication-server/issues">Request Feature</a>
