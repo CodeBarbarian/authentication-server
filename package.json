@@ -1,8 +1,8 @@
 {
   "name": "authentication-server",
   "version": "1.0.0",
-  "description": "A simple JWT authentication server supporting claims and a MariaDB database for persistent storage.",
-  "main": "index.js",
+  "description": "A simple JWT authentication server supporting tokens and a MySQL database for persistent storage.",
+  "main": "./src/app.js",
   "scripts": {
     "test": "\"echo \\\"Error: no test specified\\\" && exit 1\""
   },

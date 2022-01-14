@@ -190,19 +190,18 @@ require("dotenv").config()
 /**
  * Include express, jwt and the tokenValidator
  */
-const express = require("express")
-const jwt = require("jsonwebtoken")
-const tokenValidator = require('./Models/tokenModel');
+const express = require("express");
+const jwt = require("jsonwebtoken");
 
-const app = express()
-const port = process.env.TEST_APP_PORT
+const app = express();
+const port = process.env.TEST_APP_PORT || 8080;
 
 function validateToken (req, res, next) {
   if (!req.headers["authorization"]) {
       res.status(400);
       res.json({
           "message":"requires authorization header to be set"
-      })
+      });
   } else {
       // Get Token from request header
       const authorization = req.headers["authorization"];
