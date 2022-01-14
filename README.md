@@ -77,8 +77,8 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-The authentication server is written to as a micro service following the mvc design pattern. You should easily be able to implement this into your own project.
-Before use, make sure to read this readme file to find out what you will be needing to get everything up and running. 
+The authentication server is written as a micro service following the mvc design pattern. You should easily be able to implement this into your own project.
+Before use, make sure to read this readme file and find out what you will be needing to get everything up and running. 
 
 The most important part is the .env file which must contain the following: 
 
