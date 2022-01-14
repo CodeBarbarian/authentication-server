@@ -9,12 +9,16 @@ const app = express();
 app.use(express.json());
 
 // Including the routers
-const loginRouter = require('./Routers/loginRouter');
-const registerRouter = require('./Routers/registerRouter');
+const userRouter = require('./Routers/userRouter');
 
 // Allows the API to use them
-app.use('/api/v1', loginRouter);
-app.use('/api/v1', registerRouter);
+app.use('/api/v1', userRouter);
+/**
+ * Default route to display swagger
+ */
+app.use('/api/v1', async (req, res, next) => {
+    res.json(["display the swagger-ui"]);
+})
 
 // Retrieve the port number from the configuration file
 const PORT = process.env.TOKEN_SERVER_PORT;

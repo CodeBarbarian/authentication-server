@@ -29,10 +29,6 @@
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
-  <a href="https://github.com/codebarbarian/authentication-server">
-    <img src="images/logo.png" alt="Logo" width="80" height="80">
-  </a>
-
 <h3 align="center">Authentication Server</h3>
 
   <p align="center">
@@ -73,7 +69,6 @@
     <li><a href="#contributing">Contributing</a></li>
     <li><a href="#license">License</a></li>
     <li><a href="#contact">Contact</a></li>
-    <li><a href="#acknowledgments">Acknowledgments</a></li>
   </ol>
 </details>
 
@@ -82,8 +77,27 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-[![Product Name Screen Shot][product-screenshot]](https://example.com)
+The authentication server is written to as a micro service following the mvc design pattern. You should easily be able to implement this into your own project.
+Before use, make sure to read this readme file to find out what you will be needing to get everything up and running. 
 
+The most important part is the .env file which must contain the following: 
+
+```text
+TOKEN_SERVER_PORT = 4000
+REFRESH_TOKEN_SECRET = REFRESH_TOKEN_SECRET_GOES_HERE
+ACCESS_TOKEN_SECRET = ACCESS_TOKEN_SECRET_GOES_HERE
+
+DB_HOSTNAME = database.example.com
+DB_USERNAME = exampledb
+DB_PASSWORD = examplepassword
+DB_DATABASE = exampledatabase
+```
+
+To generate the Refresh Token Secret and the Access Token Secret: 
+```js
+$ node
+$ require("crypto").randomBytes(64).toString("hex")
+```
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -94,6 +108,11 @@
 * [NodeJs](https://nodejs.org/)
 * [Sequelize](https://sequelize.org/)
 * [ExpressJS](https://expressjs.com/)
+* [Bcrypt](https://github.com/kelektiv/node.bcrypt.js)
+* [dotenv](https://github.com/motdotla/dotenv)
+* [jsonwebtoken](https://github.com/auth0/node-jsonwebtoken)
+* [MySQL](https://github.com/mysqljs/mysql)
+* [Validator](https://github.com/validatorjs/validator.js)
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -104,13 +123,54 @@
 Add a .env file in the src directory with the following information: 
 ```text
 TOKEN_SERVER_PORT = 4000
+REFRESH_TOKEN_SECRET = REFRESH_TOKEN_SECRET_GOES_HERE
+ACCESS_TOKEN_SECRET = ACCESS_TOKEN_SECRET_GOES_HERE
+
+DB_HOSTNAME = database.example.com
+DB_USERNAME = exampledb
+DB_PASSWORD = examplepassword
+DB_DATABASE = exampledatabase
 ```
 
 ### Prerequisites
-Comning Soon.
+- NodeJS Dependencies:
+
+```json
+"dependencies": {
+    "bcrypt": "^5.0.1",
+    "dotenv": "^11.0.0",
+    "express": "^4.17.2",
+    "jsonwebtoken": "^8.5.1",
+    "mysql": "^2.18.1",
+    "validator": "^13.7.0"
+  }
+```
+- Access to a MySQL Database
 
 ### Installation
-Coming Soon.
+This is the SQL Table that needs to be added to the database
+
+```SQL
+CREATE TABLE `user` (
+  `id` int(11) NOT NULL,
+  `username` varchar(255) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `active` tinyint(4) NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Indexes for table `user`
+--
+ALTER TABLE `user`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `username` (`username`);
+
+--
+-- AUTO_INCREMENT for table `user`
+--
+ALTER TABLE `user`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+```
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -118,7 +178,67 @@ Coming Soon.
 
 <!-- USAGE EXAMPLES -->
 ## Usage
-Coming Soon.
+Add the ACCESS_TOKEN_SECRET to the application environment on you rest api or web application and use the tokenModel.js to validate the token for access.
+- The .env file must have the same ACCESS_TOKEN_SECRET as your authentication server.
+
+```js
+/**
+ * Use the same environment configuration
+ */
+require("dotenv").config()
+
+/**
+ * Include express, jwt and the tokenValidator
+ */
+const express = require("express")
+const jwt = require("jsonwebtoken")
+const tokenValidator = require('./Models/tokenModel');
+
+const app = express()
+const port = process.env.TEST_APP_PORT
+
+function validateToken (req, res, next) {
+  if (!req.headers["authorization"]) {
+      res.status(400);
+      res.json({
+          "message":"requires authorization header to be set"
+      })
+  } else {
+      // Get Token from request header
+      const authorization = req.headers["authorization"];
+      const token = authorization.split(" ")[1];
+
+      if (token == null) {
+          res.status(400).send({
+              "message":"token not Present"
+          });
+      }
+
+      jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (error, user) => {
+          if (error) {
+              res.status(403).send({
+                  "message":"token invalid"
+              });
+          } else {
+              req.user = user;
+              next();
+          }
+      });
+  }
+}
+
+app.use (express.json())
+
+app.listen(port, ()=> {
+    console.log(`Validation server running on ${port}`)
+});
+
+app.get("/secret", tokenValidator.validateToken, (req, res)=>{
+    console.log("Token is valid")
+    console.log(req.user.user)
+    res.send(`${req.user.user} successfully accessed the secret place`)
+})
+``` 
 
 _For more examples, please refer to the [Documentation](https://example.com)_
 
@@ -129,9 +249,9 @@ _For more examples, please refer to the [Documentation](https://example.com)_
 <!-- ROADMAP -->
 ## Roadmap
 
-- [ ] Basic POC up and running
-- [ ] Based on Claims 
-- [ ] Should be able to work with rest API's as long as they have a token shared. 
+- [X] Basic POC up and running
+- [X] Based on Claims 
+- [X] Should be able to work with rest API's as long as they have a token shared. 
 
 See the [open issues](https://github.com/codebarbarian/authentication-server/issues) for a full list of proposed features (and known issues).
 
@@ -174,18 +294,8 @@ Project Link: [https://github.com/codebarbarian/authentication-server](https://g
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
-
-
-<!-- ACKNOWLEDGMENTS -->
-## Acknowledgments
-
-* []()
-* []()
-* []()
-
-<p align="right">(<a href="#top">back to top</a>)</p>
-
-
+## Acknowledgements
+- Built upon [Authenticate REST APIs in Node JS using JWT (Json Web Tokens)](https://medium.com/@prashantramnyc/authenticate-rest-apis-in-node-js-using-jwt-json-web-tokens-f0e97669aad3) - By Prashant Ram
 
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
