@@ -7,12 +7,24 @@ const bcrypt = require('bcrypt');
  */
 let refreshTokens = []
 
+/**
+ * Generate the access token
+ * 
+ * @param {*} user 
+ * @returns 
+ */
 function generateAccessToken(user) {
     return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
         expiresIn: "15m"
     });
 }
 
+/**
+ * Generate refresh token
+ * 
+ * @param {*} user 
+ * @returns 
+ */
 function generateRefreshToken(user) {
     const refreshToken = jwt.sign(user, process.env.REFRESH_TOKEN_SECRET, {
         expiresIn: "20m"
@@ -22,59 +34,109 @@ function generateRefreshToken(user) {
     return refreshToken;
 }
 
+/**
+ * Helper function to check if the object is empty or not
+ * 
+ * @param {*} obj 
+ * @returns 
+ */
+function isEmpty(obj) { 
+    for (var x in obj) { 
+        return false; 
+    }
+    
+    return true;
+ }
+
+/**
+ * User Login
+ * 
+ * 
+ * @param {*} req 
+ * @param {*} res 
+ * @param {*} next 
+ */
 const login = async (req, res, next) => {
+    // Get the username and password from the request body
     username = req.body.username;
     password = req.body.password;
 
+    // Check if both username and password is passed in the request body
     if (!username || !password) {
-        res.status(401);
+        // Bad Request
+        res.status(400);
+        // Invalid request message framing
         res.json({
-            "message":"invalid login request"
+            "message":"Bad request message framing"
         })
     }
+
     /** 
      * Declare variables to be used later
-    */
+     */
     var UserData
     var UserExists
     
+    // Run userExist
     await userModel.userExist(username).then((result) => {
         UserExists = result;
     });
 
     // Check if user exists
     if (UserExists) {
+        // Retrieve user information
         await userModel.getUser(username).then((result) => {
             UserData = result;
         });
 
         // Compare userdata
-        if (UserData) {
-            // Bcrypt Compare
-            if (await bcrypt.compare(req.body.password, UserData[0].password)) {
-                // Generate Access Token and Refresh Token here
-
-                const accessToken = generateAccessToken({user:req.body.username});
-                const refreshToken = generateRefreshToken({user:req.body.username});
-
-                res.status(201);
-                res.json({
-                    "accesstoken":accessToken,
-                    "refreshtoken":refreshToken
-                })
+        if (!isEmpty(UserData)) {
+            // Is user active
+            if (UserData[0].active) {
+                // Bcrypt Compare passwords
+                if (await bcrypt.compare(req.body.password, UserData[0].password)) {
+                    // Generate Access Token and Refresh Token here
+                    const accessToken = generateAccessToken({user:req.body.username});
+                    const refreshToken = generateRefreshToken({user:req.body.username});
+                    // Since login succesfull
+                    res.status(201);
+                    res.json({
+                        "accesstoken":accessToken,
+                        "refreshtoken":refreshToken
+                    })
+                } else {
+                    // Give message back to the user that the credentials provided are invalid
+                    res.status(401);
+                    res.json({
+                        "message":"Username or password provided is invalid or account has not been activated"
+                    })
+                    console.log(`${username} has provided invalid login credentials. Failed password.`)
+                }
             } else {
-                // Give message back to the user that the credentials provided are invalid
                 res.status(401);
                 res.json({
-                    "message":"provided credentials are not valid"
+                    "message":"Username or password provided is invalid or account has not been activated"
                 })
+                console.log(`${username} is not active, and is unable to perform the request.`)
             }
+        } else {
+            res.status(401);
+            res.json({
+                "message":"Username or password provided is invalid or account has not been activated"
+            })
+            console.log(`${username} does not exist.`)
         }
     }
 }
 
+/**
+ * Refresh token
+ * 
+ * @param {*} req 
+ * @param {*} res 
+ * @param {*} next 
+ */
 const refreshToken = (req, res, next) => {
-    
     if (!refreshTokens.includes(req.body.token)) {
         res.status(400);
         res.json({
@@ -95,6 +157,13 @@ const refreshToken = (req, res, next) => {
     })
 }
 
+/**
+ * Logout
+ * 
+ * @param {*} req 
+ * @param {*} res 
+ * @param {*} next 
+ */
 const logout = (req, res, next) => {
     // Remove the old refresh token from the refresh token list
     refreshTokens = refreshTokens.filter((token) => token != req.body.token);
@@ -105,7 +174,13 @@ const logout = (req, res, next) => {
     })
 }
 
-
+/**
+ * Register User
+ * 
+ * @param {*} req 
+ * @param {*} res 
+ * @param {*} next 
+ */
 const registerUser = async(req, res, next) => {
     // Get username and password from request body
     username = req.body.username.toLowerCase();
@@ -155,7 +230,9 @@ const registerUser = async(req, res, next) => {
     }
 };
 
-
+/**
+ * Export the modules and functions
+ */
 module.exports = {
     login,
     refreshToken,

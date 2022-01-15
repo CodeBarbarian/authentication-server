@@ -33,19 +33,17 @@ function getAllUsers() {
  * @param {string} username 
  * @returns {boolean}
  */
-function userExist(username) {
+async function userExist(username) {
     return new Promise((resolve, reject) => {
         let stmt = `SELECT * FROM users WHERE username = ?`;
         let stmtvalues = [username];
 
         connection.query(stmt, stmtvalues, (error, results, fields) => {
             if (error) {
-                reject("Boop");
+                reject(error);
             }
 
-            var userdata = results[0];
-
-            if (!userdata) {
+            if (!results) {
                 resolve(false);
             } else {
                 resolve(true);
@@ -84,7 +82,6 @@ async function createUser(username, password) {
         }
     })
 }
-
 async function getUser(username) {
     return new Promise((resolve, reject) => {
         let stmt = `SELECT * FROM users WHERE username = ?`;
