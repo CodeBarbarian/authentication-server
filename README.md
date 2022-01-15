@@ -179,6 +179,45 @@ ALTER TABLE `user`
 Add the ACCESS_TOKEN_SECRET to the application environment on you rest api or web application and use the tokenModel.js to validate the token for access.
 - The .env file must have the same ACCESS_TOKEN_SECRET as your authentication server.
 
+- To create a user:
+Send to http://yoursite.org/api/v1/user/create
+
+```json
+{
+  "username":"your_username",
+  "password":"your_password",
+  "claim":"your_claim"
+}
+```
+- To login (This will give you a refresh token, and a access token)
+Send to http://yoursite.org/api/v1/user/login
+```json
+{
+  "username":"your_username",
+  "password":"password"
+}
+```
+
+- To refresh a token
+send to http://yoursite.org/api/v1/user/refresh
+
+```json
+{
+  "token":"your_refresh_token"
+}
+```
+
+- To logout
+Send to http://yoursite.org/api/v1/user/logout
+
+```json
+{
+  "token":"your_refresh_token"
+}
+```
+
+
+Test Application using the validateToken script
 ```js
 /**
  * Use the same environment configuration
