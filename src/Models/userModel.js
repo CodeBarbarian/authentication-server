@@ -82,6 +82,7 @@ async function createUser(username, password) {
         }
     })
 }
+
 async function getUser(username) {
     return new Promise((resolve, reject) => {
         let stmt = `SELECT * FROM users WHERE username = ?`;

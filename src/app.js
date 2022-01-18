@@ -13,10 +13,11 @@ const userRouter = require('./Routers/userRouter');
 
 // Allows the API to use them
 app.use('/api/v1', userRouter);
+
 /**
  * Default route to display swagger
  */
-app.use('/api/v1', async (req, res, next) => {
+app.use('/api/v1', (req, res, next) => {
     res.json(["display the swagger-ui"]);
 })
 
