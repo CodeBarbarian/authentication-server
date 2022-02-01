@@ -1,27 +1,63 @@
-// The ability to pull params from .env file
+/**
+ * @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ *  @name:      JWT Authentication Server
+ *  @version:   1.0
+ *  @author:    Morten Haugstad
+ *  @description: A simple, easy to use JWT Authentication Server
+ * 
+ *  @file: app.js
+ * @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ */
+
+/**
+ * The ability to pull params from .env file
+ */
 require('dotenv').config();
 
-// Declare and initialize the ExpressJS framework
+/**
+ * Include required module
+ */
 const express = require('express');
+const cors = require("cors");
+const swaggerUI = require("swagger-ui-express");
+
+/**
+ * Better Logging in Console
+ */
+require('log-timestamp');
+
+/**
+ * Use the Express Web Server
+ */
 const app = express();
 
-// Middleware allows us to access the request.body.<params>
+/**
+ * Include Router
+ */
+const Router = require('./Routers/Router');
+
+/**
+ * Middlewares
+ */
 app.use(express.json());
+app.use(cors());
+app.use(express.urlencoded({extended:false}));
 
-// Including the routers
-const userRouter = require('./Routers/userRouter');
-
-// Allows the API to use them
-app.use('/api/v1', userRouter);
+/**
+ * Use Router
+ */
+app.use('/api/v1', Router);
 
 /**
  * Default route to display swagger
  */
 app.use('/api/v1', (req, res, next) => {
-    res.json(["display the swagger-ui"]);
+    res.json([""]);
 })
 
-// Retrieve the port number from the configuration file
+/**
+ * Port Number
+ */
 const PORT = process.env.TOKEN_SERVER_PORT;
 
 /**

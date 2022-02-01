@@ -1,6 +1,3 @@
-const jwt = require('jsonwebtoken');
-
-
 /**
  * This function can be run to validate the JWT token and authorize 
  * access towards resources. 

@@ -1,126 +1,125 @@
-const Validator = require('validator');
-let mysql = require('mysql');
-
-let connection = mysql.createConnection({
-    host: process.env.DB_HOSTNAME,
-    user: process.env.DB_USERNAME,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_DATABASE
-});
+const validator = require('validator');
+const helper = require('../Library/Haugstad');
+const database = require('../Library/Database');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 /**
- * Get all the users in the database
- * 
- * @returns {object}
+ * To store the refresh tokens in
  */
-function getAllUsers() {
-    return new Promise((resolve, reject) => {
-        let SQL = `SELECT username FROM users`;
-
-        connection.query(SQL, (error, results, fields) => {
-          if (error) {
-              reject(console.error(error.message));
-        }
-        
-        resolve(results)
-      });
-    })
-}
+let refreshTokens = []
 
 /**
- * Check if a user exist in the database
+ * Generate the access token
  * 
- * @param {string} username 
- * @returns {boolean}
+ * @param {*} user 
+ * @returns 
  */
-async function userExist(username) {
-    return new Promise((resolve, reject) => {
-        let stmt = `SELECT * FROM users WHERE username = ?`;
-        let stmtvalues = [username];
-
-        connection.query(stmt, stmtvalues, (error, results, fields) => {
-            if (error) {
-                reject(error);
-            }
-
-            if (!results) {
-                resolve(false);
-            } else {
-                resolve(true);
-            }
-        });
+function generateAccessToken(user) {
+    return jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: "1m"
     });
 }
 
 /**
- * Create a user if it does not exist
+ * Generate refresh token
  * 
- * @param {string} username 
- * @param {string} password 
+ * @param {*} user 
+ * @returns 
  */
-async function createUser(username, password) {
-    UserData = await userExist(username).then((result) => {
-        // If user does not exist
-        if (!result) {
-            // Return new promise
-            return new Promise((resolve, reject) =>{
-                // Prepare SQL statement
-                let stmt = `INSERT INTO users (username, password, active, claim) VALUES (?, ?, ?, ?)`;
-                let stmtvalues = [username, password, 0, ''];
+function generateRefreshToken(user) {
+    const refreshToken = jwt.sign(user, process.env.REFRESH_TOKEN_SECRET, {
+        expiresIn: "20m"
+    });
+
+    refreshTokens.push(refreshToken);
+    return refreshToken;
+}
+
+const postLogin = async (table, username, password) => {
+    var UserData = [];
     
-                // Run Query
-                connection.query(stmt, stmtvalues, (error, results, fields) => {
-                    if (error) {
-                        // Return rejection
-                        reject(console.log(error));
-                    }
+    // Check if we have everyting
+    if (helper.isEmpty(table) || helper.isEmpty(username) || helper.isEmpty(password)) {
+        return false;
+    }
 
-                    // Return resolve
-                    resolve(results);
-                });
-            });
-        }
-    })
-}
-
-async function getUser(username) {
-    return new Promise((resolve, reject) => {
-        let stmt = `SELECT * FROM users WHERE username = ?`;
-        let stmtvalues = [username];
-
-        // Run Query
-        connection.query(stmt, stmtvalues, (error, results, fields) => {
-            if (error) {
-                // return rejection
-                reject(console.log(error)); 
-            }
-
-            // return promise
-            resolve(results);
-        });
+    // Async call to check if the user exists
+    await database.getEntryByField('users', username, 'username').then((result) => {
+        UserData = result;
     });
-}
 
-/**
- * Validates the username
- * 
- * @param {string} username 
- * @returns {boolean}
- */
-function validateUsername(username) {
-    if (!Validator.matches(username,"^[a-zA-Z0-9_\.\-]*$")) {
+    // Performing the actual check if the user exist
+    if (helper.isEmpty(UserData)) {
         return false;
     } else {
-        return true;
-    }
-}
+        // Easier to manipulate object one down
+        UserData = UserData[0];
 
- 
+        // Check if user is active
+        if (UserData.active !== 1) {
+            return false;
+        }
+
+        // Compare to see if the password matches
+        if (!(await bcrypt.compare(password, UserData.password))) {
+            return false;
+        } 
+
+        // If all else works. Send the accesstoken, and the refreshtoken.
+        const accessToken = generateAccessToken({user: username});
+        const refreshToken = generateRefreshToken({user: username});
+
+        // return the accesstoken and refreshtoken
+        return ({
+            "accesstoken":accessToken,
+            "refreshtoken":refreshToken
+        });
+
+    }
+};
+
+const postRefreshToken = async (requestBody) => {
+    if (helper.isEmpty(requestBody)) {
+        return false;
+    }
+
+    if (!refreshTokens.includes(requestBody.token)) {
+        return false;
+    }
+
+    // remove the old refresh token
+    refreshTokens = refreshTokens.filter((token) => token != requestBody.token);
+
+    // If all else works. Send the accesstoken, and the refreshtoken.
+    const accessToken = generateAccessToken({user: requestBody.username});
+    const refreshToken = generateRefreshToken({user: requestBody.username});
+
+    // return the accesstoken and refreshtoken
+    return ({
+        "accesstoken":accessToken,
+        "refreshtoken":refreshToken
+    });
+};
+
+const deleteLogout = async(requestBody) => {
+    return new Promise((resolve, reject) => {
+        if (helper.isEmpty(requestBody)) {
+            reject(true);
+        }
+
+        refreshTokens = refreshTokens.filter((token) => token != requestBody.token);
+        resolve(false);
+    });
+};
+
+const postCreate = async () => {
+
+};
 
 module.exports = {
-    getAllUsers,
-    createUser,
-    userExist,
-    validateUsername,
-    getUser
+    postLogin,
+    postRefreshToken,
+    deleteLogout,
+    postCreate
 }
