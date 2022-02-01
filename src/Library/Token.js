@@ -6,6 +6,9 @@
  * @param {*} res 
  * @param {*} next 
  */
+
+const jwt = require('jsonwebtoken');
+
 function validateToken (req, res, next) {
     if (!req.headers["authorization"]) {
         res.status(400);

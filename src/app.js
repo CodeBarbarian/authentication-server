@@ -20,6 +20,8 @@ require('dotenv').config();
 const express = require('express');
 const cors = require("cors");
 const swaggerUI = require("swagger-ui-express");
+const helmet = require('helmet');
+const morgan = require('morgan')
 
 /**
  * Better Logging in Console
@@ -37,11 +39,31 @@ const app = express();
 const Router = require('./Routers/Router');
 
 /**
- * Middlewares
+ * Use Morgan for logging
  */
-app.use(express.json());
-app.use(cors());
-app.use(express.urlencoded({extended:false}));
+ app.use(morgan('combined'))
+
+ /**
+  * Security Middleware
+  */
+ app.use(helmet());
+ 
+ /**
+  * Middleware allows us to access the request.body.<params>
+  */
+ app.use(express.json());
+ 
+ /**
+  * Middleware use CORS
+  */
+ app.use(cors());
+ 
+ /**
+  * Middleware to use urlencode
+  */
+ app.use(express.urlencoded({extended:false}));
+ 
+
 
 /**
  * Use Router

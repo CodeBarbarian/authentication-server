@@ -54,7 +54,26 @@ const deleteLogout = async(req, res, next) => {
 };
 
 const postCreate = async(req, res, next) => {
+    var UserData = [];
 
+    // Check if everything which is required is posted
+    if (helper.isEmpty(req.body.username) || helper.isEmpty(req.body.password)) {
+        helper.sendResponse(res, 400);
+    } else {
+        // Simplicity
+        var Username = req.body.username.toLowerCase();
+        var Password = req.body.password;
+
+        await userModel.postCreate('users', Username, Password).then((result) => {
+            UserData = result;
+        });
+
+        if (helper.isEmpty(UserData)) {
+            helper.sendResponse(res, 400);
+        } else {
+            helper.sendResponse(res, 201, UserData);
+        }
+    }
 };
 
 module.exports = {

@@ -10,6 +10,11 @@ const router = express.Router();
 const Controller = require('../Controllers/userController');
 
 /**
+ * Create New user
+ */
+router.post('/user/create', Controller.postCreate);
+
+/**
  * Post for handling the login of a user
  */
 router.post('/user/login', Controller.postLogin);

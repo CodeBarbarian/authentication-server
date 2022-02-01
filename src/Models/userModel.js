@@ -45,7 +45,7 @@ const postLogin = async (table, username, password) => {
     }
 
     // Async call to check if the user exists
-    await database.getEntryByField('users', username, 'username').then((result) => {
+    await database.getEntryByField(table, username, 'username').then((result) => {
         UserData = result;
     });
 
@@ -113,8 +113,54 @@ const deleteLogout = async(requestBody) => {
     });
 };
 
-const postCreate = async () => {
+/**
+ * Validates the username
+ * 
+ * @param {string} username 
+ * @returns {boolean}
+ */
+ function validateUsername(username) {
+    if (!validator.matches(username,"^[a-zA-Z0-9_\.\-]*$")) {
+        return false;
+    } else {
+        return true;
+    }
+}
 
+const postCreate = async (Table, Username, Password) => {
+    var TestData = [];
+    var UserData = [];
+
+    if (helper.isEmpty(Username) || helper.isEmpty(Password)) {
+        return false;
+    }
+
+    // Check if the username is valid
+    if (!validateUsername(Username)) {
+        return false;
+    }
+
+    // Check if user exists
+    await database.getEntryByField(Table, Username, 'username').then((result) => {
+        TestData = result;
+    });
+
+    if (!helper.isEmpty(TestData)) {
+        return false;
+    } else {
+        // Start by hashing the password
+        var HashedPassword = await bcrypt.hash(Password, 10);
+
+        await database.createUser(Table, Username, HashedPassword).then((result) => {
+            UserData = result;
+        })
+
+        if (helper.isEmpty(UserData)) {
+            return false;
+        } 
+
+        return UserData;
+    }
 };
 
 module.exports = {
